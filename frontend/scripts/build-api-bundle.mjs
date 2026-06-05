@@ -14,11 +14,11 @@ mkdirSync(outputDir, { recursive: true });
 
 await build({
   entryPoints: [resolve(repoRoot, "backend/src/app.ts")],
-  outfile: resolve(outputDir, "bundle.mjs"),
+  outfile: resolve(outputDir, "bundle.cjs"),
   bundle: true,
   platform: "node",
   target: "node20",
-  format: "esm",
+  format: "cjs",
   packages: "bundle",
   logLevel: "info",
 });

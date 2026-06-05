@@ -1,5 +1,8 @@
+import { createRequire } from "node:module";
 import serverless from "serverless-http";
-import { createApp } from "../api-backend/bundle.mjs";
+
+const require = createRequire(import.meta.url);
+const { createApp } = require("../api-backend/bundle.cjs");
 
 const app = createApp();
 
