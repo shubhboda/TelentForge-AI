@@ -47,8 +47,8 @@ export function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(22,153,109,0.22),_transparent_30%),linear-gradient(180deg,#06110e_0%,#091712_50%,#040906_100%)] px-4 py-10 text-slate-100">
-      <div className="mx-auto flex min-h-[85vh] max-w-5xl items-center justify-center">
+    <div className="min-h-[100dvh] bg-[radial-gradient(circle_at_top,_rgba(22,153,109,0.22),_transparent_30%),linear-gradient(180deg,#06110e_0%,#091712_50%,#040906_100%)] px-3 py-6 text-slate-100 sm:px-4 sm:py-10">
+      <div className="mx-auto flex min-h-[calc(100dvh-3rem)] max-w-5xl items-center justify-center">
         <Card className="grid w-full max-w-4xl overflow-hidden p-0 lg:grid-cols-2">
           <section className="relative hidden bg-[radial-gradient(circle_at_top,_rgba(22,153,109,0.25),_transparent_38%),radial-gradient(circle_at_bottom,_rgba(245,158,11,0.17),_transparent_35%)] p-8 lg:block">
             <Logo size="lg" />
@@ -63,7 +63,14 @@ export function AuthPage() {
             </div>
           </section>
 
-          <section className="p-6 sm:p-8">
+          <section className="p-4 sm:p-8">
+            <div className="mb-5 lg:hidden">
+              <Logo size="sm" />
+              <p className="mt-3 text-sm leading-6 text-slate-400">
+                Sign in or create your recruiter account to access the hiring workspace.
+              </p>
+            </div>
+
             <div className="mb-6 flex rounded-2xl border border-white/10 bg-black/20 p-1">
               <button
                 type="button"
