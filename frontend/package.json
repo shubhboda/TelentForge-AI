@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prebuild": "node scripts/copy-backend.mjs",
+    "prebuild": "node scripts/build-api-bundle.mjs",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "lint": "eslint .",
@@ -34,6 +34,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "esbuild": "^0.25.0",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",
