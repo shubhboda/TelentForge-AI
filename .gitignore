@@ -7,5 +7,7 @@ coverage
 .vscode/.ropeproject
 .DS_Store
 frontend/dist
+frontend/api-backend
 backend/dist
 shared/dist
+.vercel
