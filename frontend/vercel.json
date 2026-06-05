@@ -1,10 +1,4 @@
 {
-  "functions": {
-    "api/[...path].js": {
-      "maxDuration": 30,
-      "includeFiles": "api-backend/bundle.cjs"
-    }
-  },
   "rewrites": [
     { "source": "/health", "destination": "/api/health" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
