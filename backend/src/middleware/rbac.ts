@@ -1,6 +1,7 @@
 import type { NextFunction, Response } from "express";
 import type { AuthenticatedRequest } from "./auth.js";
-import type { Role } from "@talentforge/shared";
+
+type Role = "admin" | "recruiter" | "manager" | "candidate";
 
 export function requireRole(allowedRoles: Role[]) {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
