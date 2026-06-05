@@ -1,0 +1,11 @@
+node_modules
+/dist
+build
+coverage
+.env
+.env.*
+.vscode/.ropeproject
+.DS_Store
+frontend/dist
+backend/dist
+shared/dist
