@@ -30,6 +30,7 @@ export function createApp() {
   });
 
   app.use("/health", healthRouter);
+  app.use("/api/health", healthRouter);
   app.use("/api/auth", authRouter);
   app.use("/api/jobs", jobsRouter);
   app.use("/api/candidates", candidatesRouter);
