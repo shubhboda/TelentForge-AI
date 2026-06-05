@@ -1,4 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000";
+const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+const API_BASE_URL = configuredApiBaseUrl || (import.meta.env.DEV ? "http://localhost:5000" : "");
 const ACCESS_TOKEN_STORAGE_KEY = "talentforge.accessToken";
 
 type ApiEnvelope<T> = {
@@ -16,10 +17,19 @@ async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...init,
+      headers,
+    });
+  } catch {
+    throw new Error(
+      import.meta.env.DEV
+        ? "Unable to reach the API server. Make sure the backend is running."
+        : "Unable to reach the API server. Please try again in a moment."
+    );
+  }
 
   if (!response.ok) {
     let message = `Request failed with status ${response.status}`;
