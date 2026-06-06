@@ -1,10 +1,11 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Building2, LoaderCircle, Lock, Mail, User2 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { Logo } from "../components/Logo";
 import { useAuth } from "../lib/auth";
+import { checkApiHealth } from "../lib/api";
 
 type Mode = "login" | "signup";
 
@@ -19,6 +20,28 @@ export function AuthPage() {
   const [organizationSlug, setOrganizationSlug] = useState("talentforge-demo");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [apiOnline, setApiOnline] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    async function verifyBackend() {
+      const online = await checkApiHealth();
+      if (active) {
+        setApiOnline(online);
+      }
+    }
+
+    void verifyBackend();
+    const intervalId = window.setInterval(() => {
+      void verifyBackend();
+    }, 10000);
+
+    return () => {
+      active = false;
+      window.clearInterval(intervalId);
+    };
+  }, []);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -40,6 +63,11 @@ export function AuthPage() {
       navigate("/", { replace: true });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Authentication failed";
+      if (message.includes("Email already registered")) {
+        setMode("login");
+        setErrorMessage("This email is already registered. Please log in instead.");
+        return;
+      }
       setErrorMessage(message);
     } finally {
       setIsSubmitting(false);
@@ -99,6 +127,18 @@ export function AuthPage() {
             </div>
 
             <form onSubmit={onSubmit} className="space-y-4">
+              {import.meta.env.DEV && apiOnline === false && (
+                <div className="rounded-xl border border-amber-400/40 bg-amber-500/15 px-4 py-3 text-sm text-amber-100">
+                  Backend is offline. Run <span className="font-semibold">npm run dev</span> in the project folder, then refresh this page.
+                </div>
+              )}
+
+              {import.meta.env.DEV && apiOnline === true && (
+                <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-xs text-emerald-200">
+                  Backend connected
+                </div>
+              )}
+
               {mode === "signup" && (
                 <label className="block space-y-2 text-sm text-slate-300">
                   <span className="text-xs uppercase tracking-[0.22em] text-slate-400">Full name</span>
@@ -172,7 +212,11 @@ export function AuthPage() {
                 </div>
               )}
 
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isSubmitting || (import.meta.env.DEV && apiOnline === false)}
+              >
                 {isSubmitting ? (
                   <>
                     <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />

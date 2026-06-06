@@ -1,6 +1,84 @@
 const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
-const API_BASE_URL = configuredApiBaseUrl || (import.meta.env.DEV ? "http://localhost:5000" : "");
 const ACCESS_TOKEN_STORAGE_KEY = "talentforge.accessToken";
+
+let cachedDevApiBaseUrl: string | null = null;
+
+function isLocalApiUrl(url: string) {
+  return /localhost|127\.0\.0\.1/i.test(url);
+}
+
+function getProductionApiBaseUrl() {
+  if (!configuredApiBaseUrl || isLocalApiUrl(configuredApiBaseUrl)) {
+    return "";
+  }
+  return configuredApiBaseUrl;
+}
+
+function getDevApiBaseUrl() {
+  if (configuredApiBaseUrl && !isLocalApiUrl(configuredApiBaseUrl)) {
+    return configuredApiBaseUrl;
+  }
+  return "http://127.0.0.1:5000";
+}
+
+function getDevApiCandidates() {
+  const devApiUrl = getDevApiBaseUrl();
+  const candidates = [devApiUrl, "http://127.0.0.1:5000", "http://localhost:5000"];
+
+  if (typeof window !== "undefined") {
+    candidates.unshift(window.location.origin);
+  }
+
+  return [...new Set(candidates.filter(Boolean))];
+}
+
+export async function checkApiHealth(): Promise<boolean> {
+  try {
+    if (import.meta.env.DEV) {
+      await resolveDevApiBaseUrl();
+      return true;
+    }
+
+    const response = await fetch(`${getProductionApiBaseUrl()}/health`, {
+      method: "GET",
+      signal: AbortSignal.timeout(2500),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+async function resolveDevApiBaseUrl() {
+  if (cachedDevApiBaseUrl) {
+    return cachedDevApiBaseUrl;
+  }
+
+  for (const baseUrl of getDevApiCandidates()) {
+    try {
+      const response = await fetch(`${baseUrl}/health`, {
+        method: "GET",
+        signal: AbortSignal.timeout(2500),
+      });
+
+      if (response.ok) {
+        cachedDevApiBaseUrl = baseUrl;
+        return baseUrl;
+      }
+    } catch {
+      // Try the next candidate URL.
+    }
+  }
+
+  throw new Error("Backend is not running. From the project folder run: npm run dev");
+}
+
+async function getRequestBaseUrl() {
+  if (import.meta.env.DEV) {
+    return resolveDevApiBaseUrl();
+  }
+  return getProductionApiBaseUrl();
+}
 
 type ApiEnvelope<T> = {
   success: boolean;
@@ -19,16 +97,20 @@ async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
 
   let response: Response;
   try {
-    response = await fetch(`${API_BASE_URL}${path}`, {
+    const baseUrl = await getRequestBaseUrl();
+    response = await fetch(`${baseUrl}${path}`, {
       ...init,
       headers,
     });
-  } catch {
-    throw new Error(
-      import.meta.env.DEV
-        ? "Unable to reach the API server. Make sure the backend is running."
-        : "Unable to reach the API server. Please try again in a moment."
-    );
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      cachedDevApiBaseUrl = null;
+      throw error instanceof Error
+        ? error
+        : new Error("Backend is not running. From the project folder run: npm run dev");
+    }
+
+    throw new Error("Unable to reach the API server. Please try again in a moment.");
   }
 
   if (!response.ok) {
@@ -71,4 +153,9 @@ export function getAccessToken() {
   return localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
 }
 
-export { API_BASE_URL };
+export function getApiBaseUrl() {
+  if (import.meta.env.DEV) {
+    return cachedDevApiBaseUrl ?? getDevApiBaseUrl();
+  }
+  return getProductionApiBaseUrl();
+}
